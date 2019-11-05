@@ -7,6 +7,7 @@ import subprocess
 from subprocess import call
 import functools 
 import operator
+import re
 
 #GLOBAL VARIABLES
 
@@ -83,6 +84,12 @@ def search_database(pfn_var, tg_var):
             print("Please input Y ('Yes') or N ('No').")
 
 
+def write_variables():
+    subprocess.call(["touch", "variables.txt"])
+    f = open("variables.txt", "w")
+    f.write(search_query)
+    f.close()
+
 #%%
 pfn_var = test_pfn()
 tg_var = test_tg()
@@ -107,17 +114,17 @@ def example_esearch():
     subprocess.call(["touch", "example_esearch.txt"])
     with open("example_esearch.txt", "w") as outfile:
         example_query = "glucose-6-phosphatase AND aves"
-        subprocess.call(["esearch", "-db", "gene", "-query", example_query], stdout=outfile) 
+        subprocess.call(["esearch", "-db", "protein", "-query", example_query], stdout=outfile) 
         
 def esearch():
     subprocess.call(["touch", "esearch.txt"])
     with open("esearch.txt", "w") as outfile:
-        subprocess.call(["esearch", "-db", "gene", "-query", search_query], stdout=outfile) 
-        output = subprocess.Popen(['grep', "Count", "esearch.txt"], stdout=subprocess.PIPE).communicate()
+        subprocess.call(["esearch", "-db", "homologene", "-query", search_query], stdout=outfile) 
+        #output = subprocess.Popen(['grep', "Count", "esearch.txt"], stdout=subprocess.PIPE).communicate()
         #subprocess.call(["grep", "Count", "esearch.txt"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         #seq_count = seq_count[6:8]
-        print(output)
-        print(type(output))
+        #print(output)
+        #print(type(output))
         correct_search = input("Your search has returned X number of sequences. Continue to download sequences? Y/N")
         while True:
             if correct_search.upper() == "Y":
@@ -129,9 +136,73 @@ def esearch():
             else:
                 print("Please input Y ('Yes') or N ('No').")
                 break
-            
-example_esearch()
+
+def example_efetch():
+    subprocess.call(["touch", "example_efetch.fasta"])
+    with open("example_efetch.fasta", "w") as outfile:
+        subprocess.call(["efetch", "-db", "protein", "-id", example_webenv_var, "-format", "fasta"], stdout=outfile) 
+        
+def efetch():
+    subprocess.call(["touch", "efetch.fasta"])
+    with open("efetch.fasta", "w") as outfile:
+        cmd = "esearch -db protein -query " + search_query + " |  efetch -db protein -WebEnv " + webenv_var[0] + " -format fasta"
+        subprocess.Popen(cmd, shell=True, stdout=outfile)
+        #subprocess.call(["esearch", "-db", "protein", "-query", "'", search_query, "'", "|", "efetch", "-format", "fasta"], stdout=outfile)
+         
+#esearch -db protein -query "lycopene cyclase" |  efetch -format fasta
+        
+#get line
+def example_extract_webenv():
+    string_var = "WebEnv"
+    matchedLine = ""
+    splicedLine = ""
+    subprocess.call(["touch", "example_esearch.txt"])
+    with open('example_esearch.txt', 'r') as file:
+        for line in file:
+            if string_var in line:
+                matchedLine = line
+                splicedLine = matchedLine[10:][:-10]
+                break
+    with open("example_esearch_output.txt", "w") as file:
+        file.write(splicedLine)
+        return splicedLine
+    
+def extract_webenv():
+    string_var = "WebEnv"
+    string_var_2 = "QueryKey"
+    matchedLine = ""
+    splicedLine = ""
+    splicedLine2 = ""
+    subprocess.call(["touch", "esearch.txt"])
+    with open('esearch.txt', 'r') as file:
+        for line in file:
+            if string_var in line:
+                matchedLine = line
+                splicedLine = matchedLine[10:][:-10]
+                break
+            if string_var_2 in line:
+                matchedLine2 = line
+                splicedLine2 = matchedLine2[9:][:-11]
+        with open("esearch_output.txt", "w") as file:
+            file.write(splicedLine) #matchedLine
+            file.write(splicedLine2)
+            return [splicedLine, splicedLine2]
+    
+    
+example_results_return = example_esearch()
 esearch()
+    
+#example_webenv_var = example_extract_webenv()
+webenv_var = extract_webenv()
+#print(example_webenv_var)
+print(webenv_var)
+
+write_variables()
+
+#example_efetch()
+#efetch()
+
+
 
 #%% - end 
 
