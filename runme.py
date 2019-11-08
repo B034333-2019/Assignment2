@@ -28,8 +28,8 @@ seq_count = ""
 
 def test_pfn():
     pfn_var = ""
-    pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
     while True:
+        pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
         pfn_var = pfn_var.lower()
         if pfn_var.isdigit():
             print("Your input is not in the correct format. Please input text. Do not input numbers.")
@@ -50,8 +50,8 @@ def test_pfn():
 
 def test_tg():
     tg_var = ""
-    tg_var = input("Please enter the taxonomic group you are interested in. Again, capitalisation is not important, but spelling is: ")
     while True:
+        tg_var = input("Please enter the taxonomic group you are interested in. Again, capitalisation is not important, but spelling is: ")
         tg_var = tg_var.lower()
         if tg_var.isdigit():
             print("Your input is not in the correct format. Please input text. Do not input numbers.")
@@ -128,7 +128,7 @@ def esearch():
         correct_search = input("Your search has returned X number of sequences. Continue to download sequences? Y/N")
         while True:
             if correct_search.upper() == "Y":
-                print("Thank you. Downloading sequences.")
+                print("Thank you. Downloading sequences. Please be patient.")
                 return seq_count
             if correct_search.upper() == "N":
                 print("Please run script again to do a new search.")
@@ -187,8 +187,41 @@ def extract_webenv():
             file.write(splicedLine) #matchedLine
             file.write(splicedLine2)
             return [splicedLine, splicedLine2]
+
+'''
+I cannot get around including a bash script here to run the various analysis programmes. I tried using /subprocess.call() with various 
+syntaxes to have python execute scripts this way, but unfortunately the input/output piping didn't work correctly. I have tried to keep
+bash scripting to a minimum.
+'''
+def execute_bash():
+    x = input("You are about to download FASTA files of your protein of interest, and then perform a multiple sequence alignment. This may take a while. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./bashscript.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+            
+#Function to iterate through a blastp search, in order to pick out the 250 most high-scoring sequences
+ 
+    #%%
+practice_list  = ["red", "green", "orange", "yellow"]    
     
-    
+def iterate_blastp():
+    list_250 = []
+    with open('blastoutput1.out', 'r') as file:
+        for i in range(0,250,1) in file:
+            list_250 = list_250.append(i)
+            
+            
+
+#%%
+
 example_results_return = example_esearch()
 esearch()
     
@@ -198,6 +231,9 @@ webenv_var = extract_webenv()
 print(webenv_var)
 
 write_variables()
+execute_bash()
+
+iterate_blastp()
 
 #example_efetch()
 #efetch()
