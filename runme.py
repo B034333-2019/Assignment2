@@ -21,30 +21,32 @@ tg_var = ""
 
 #Number of sequences that are found during esearch
 seq_count = ""
+
+search_query = ""
 #FUNCTIONS
 
 
 #test_pfn: function that checks the user input for the protein family name is a string, and not a number or logic operator
 
 def test_pfn():
-    pfn_var = ""
-    while True:
-        pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
-        pfn_var = pfn_var.lower()
-        if pfn_var.isdigit():
-            print("Your input is not in the correct format. Please input text. Do not input numbers.")
-        else:
-            y_n_query = input("Is '" + str(pfn_var) + "' the protein family you wish to investigate? Y/N")
-            if y_n_query.upper() == "Y":
-                print("Thank you. You have inputted: '" + pfn_var + "'.")
-                return pfn_var
-                break
-            elif y_n_query.upper() == "N":
-                pfn_var = input("Please enter the protein family name you are interested in: ")
-                continue
+        pfn_var = ""
+        while True:
+            pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
+            pfn_var = pfn_var.lower()
+            if pfn_var.isdigit():
+                print("Your input is not in the correct format. Please input text. Do not input numbers.")
             else:
-                print("Please input Y ('Yes') or N ('No').")
-
+                y_n_query = input("Is '" + str(pfn_var) + "' the protein family you wish to investigate? Y/N")
+                if y_n_query.upper() == "Y":
+                    print("Thank you. You have inputted: '" + pfn_var + "'.")
+                    return pfn_var
+                    break
+                elif y_n_query.upper() == "N":
+                    pfn_var = input("Please enter the protein family name you are interested in: ")
+                    continue
+                else:
+                    print("Please input Y ('Yes') or N ('No').")
+                
 
 #test_pfn: function that checks the user input for the taxonomy is a string, and not a number or logic operator
 
@@ -91,9 +93,7 @@ def write_variables():
     f.close()
 
 #%%
-pfn_var = test_pfn()
-tg_var = test_tg()
-final_search = search_database(pfn_var, tg_var)
+
 
 #print(final_search)
 
@@ -104,8 +104,6 @@ final_search = search_database(pfn_var, tg_var)
 #Variables
 #search_query = "esearch -db gene -query " + pfn_var + " AND " + tg_var
 #Example query:
-
-search_query = pfn_var + " AND " + tg_var
 
 #search_query = "esearch -db gene -query " + pfn_var + " AND " + tg_var
 #esearch_touch = subprocess.call(["touch", "esearch.txt"])
@@ -189,16 +187,18 @@ def extract_webenv():
             return [splicedLine, splicedLine2]
 
 '''
-I cannot get around including a bash script here to run the various analysis programmes. I tried using /subprocess.call() with various 
+I cannot get around including a bash script here to run the various analysis programmes. I tried using subprocess.call() with various 
 syntaxes to have python execute scripts this way, but unfortunately the input/output piping didn't work correctly. I have tried to keep
 bash scripting to a minimum.
 '''
-def execute_bash():
-    x = input("You are about to download FASTA files of your protein of interest, and then perform a multiple sequence alignment. This may take a while. Proceed? Y/N")
+
+#function to run esearch and pipe result into efetch to fetch relevant FASTA files into a file called query_fasta.fasta
+def execute_esearch():
+    x = input("You are about to download FASTA files of your protein of interest. This may take a while. Proceed? Y/N")
     while True:
         if x.upper() == "Y":
             print("Thank you. Running script.")
-            subprocess.call("./bashscript.sh", shell=True)
+            subprocess.call("./esearch.sh", shell=True)
             break
         if x.upper() == "N":
              print("Please run script again to do a new search.")
@@ -206,7 +206,113 @@ def execute_bash():
         else:
             print("Please input Y ('Yes') or N ('No').")
             break
-            
+        
+#function to run makeblastdb of the fasta files for intersequence similarity alignment into a DB called seq_db
+def execute_makeblastdb():
+    x = input("You are about to create a database of your sequences of interest against which to BLAST. This may take a while. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./makeblastdb.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+
+def execute_blastp():
+    x = input("You are about to BLAST your protein sequences against your local database in a multiple sequence alignment. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./blastp.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+'''
+def execute_clustalo():
+    x = input("You are about to use clustalo to check for similar alignments. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./clustalo.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+'''     
+
+#Once blastp has run, we extract the subject accession number column from the 250 most similar        
+def execute_250_seq():
+    x = input("The 250 most similar sequences will be extracted and used in the next  Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./250extract.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+
+#%%
+
+import subprocess
+from subprocess import call
+
+'''
+#retrieve top 250 similar sequences and put them in a file as a list
+def loop_250():
+    list_250 = []
+    subprocess.call(["touch", "250_list.txt"])
+    f = open("250_list.txt", "w")
+    with open('250_acc_numbers', 'r') as file:
+        for i in file:
+            list_250 = list_250.append(i)
+    f.write(list_250)
+    f.close()
+'''
+          
+def loop_250():
+    list = open("250_acc_numbers").readlines()
+    list[:] = [list.rstrip('\n') for line in list]
+    list = str(list)
+    subprocess.call(["touch", "250_list.txt"])
+    f = open("250_list.txt", "w")
+    f.write(list)
+    f.close()
+    
+loop_250()
+
+#%%
+def execute_plotcon():
+    x = input("You are about to use PLOTCON to create a sequence conservation plot. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./plotcon.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+        
+
+
+
 #Function to iterate through a blastp search, in order to pick out the 250 most high-scoring sequences
  
     #%%
@@ -222,18 +328,33 @@ def iterate_blastp():
 
 #%%
 
-example_results_return = example_esearch()
-esearch()
-    
+
+   
 #example_webenv_var = example_extract_webenv()
-webenv_var = extract_webenv()
+#example_results_return = example_esearch()
+#webenv_var = extract_webenv()
 #print(example_webenv_var)
-print(webenv_var)
+#print(webenv_var)
+
+#Retrieve user input
+
+pfn_var = test_pfn()
+tg_var = test_tg()
+final_search = search_database(pfn_var, tg_var)
+
+search_query = pfn_var + " AND " + tg_var
+
+#Further analysis
 
 write_variables()
-execute_bash()
+esearch()
+execute_esearch()
+execute_makeblastdb()
+execute_blastp()
 
-iterate_blastp()
+#execute_plotcon()
+
+#iterate_blastp()
 
 #example_efetch()
 #efetch()
