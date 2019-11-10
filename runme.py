@@ -11,8 +11,6 @@ import re
 
 #GLOBAL VARIABLES
 
-#test input: glucose-6-phosphatase in birds (Aves) NEED TO CHECK FOR 6 in the string
-
 #Variable for the user input protein family name
 pfn_var = ""
 
@@ -26,8 +24,11 @@ search_query = ""
 #FUNCTIONS
 
 
-#test_pfn: function that checks the user input for the protein family name is a string, and not a number or logic operator
 
+
+#FUNCTION LIST
+
+#test_pfn(): function that checks the user input for the protein family name is a string, and not a number or logic operator
 def test_pfn():
         pfn_var = ""
         while True:
@@ -48,8 +49,7 @@ def test_pfn():
                     print("Please input Y ('Yes') or N ('No').")
                 
 
-#test_pfn: function that checks the user input for the taxonomy is a string, and not a number or logic operator
-
+#test_tg(): function that checks the user input for the taxonomy is a string, and not a number or logic operator
 def test_tg():
     tg_var = ""
     while True:
@@ -70,9 +70,7 @@ def test_tg():
                 print("Please input Y ('Yes') or N ('No').")
                
 
-#Execute both test_pfn and test_tg functions to retrieve user input of protein families and taxonomic group
-#%%
-
+#search_database(args): Confirms that both protein protein family and taxonomic group are correctly input before proceeding.
 def search_database(pfn_var, tg_var):
     touple = (pfn_var, tg_var)
     correct_search = input("Searching for " + pfn_var.capitalize() + " in the taxonomy " + tg_var.capitalize() + " in the NCBI database. Is this correct? Y/N")
@@ -85,44 +83,25 @@ def search_database(pfn_var, tg_var):
         else:
             print("Please input Y ('Yes') or N ('No').")
 
-
+#write_variables(): a function to write out the user protein family group and taxonomy to file to then use as inputs in bash scripts
 def write_variables():
     subprocess.call(["touch", "variables.txt"])
     f = open("variables.txt", "w")
     f.write(search_query)
     f.close()
 
-#%%
-
-
-#print(final_search)
-
-
-
-#%%
-#Python call to unix to execute Edirect suite
-#Variables
-#search_query = "esearch -db gene -query " + pfn_var + " AND " + tg_var
-#Example query:
-
-#search_query = "esearch -db gene -query " + pfn_var + " AND " + tg_var
-#esearch_touch = subprocess.call(["touch", "esearch.txt"])
-
+#example_esearch(): unused function that was to be used for running an example query using glucose-6-phosphatase and Aves as pfn_var and tg_var respectively
 def example_esearch():
     subprocess.call(["touch", "example_esearch.txt"])
     with open("example_esearch.txt", "w") as outfile:
         example_query = "glucose-6-phosphatase AND aves"
         subprocess.call(["esearch", "-db", "protein", "-query", example_query], stdout=outfile) 
         
+#esearch(): function used to query the NCBI protein database and return the number of sequences found (WORK IN PROGRESS)
 def esearch():
     subprocess.call(["touch", "esearch.txt"])
     with open("esearch.txt", "w") as outfile:
-        subprocess.call(["esearch", "-db", "homologene", "-query", search_query], stdout=outfile) 
-        #output = subprocess.Popen(['grep', "Count", "esearch.txt"], stdout=subprocess.PIPE).communicate()
-        #subprocess.call(["grep", "Count", "esearch.txt"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        #seq_count = seq_count[6:8]
-        #print(output)
-        #print(type(output))
+        subprocess.call(["esearch", "-db", "protein", "-query", search_query], stdout=outfile) 
         correct_search = input("Your search has returned X number of sequences. Continue to download sequences? Y/N")
         while True:
             if correct_search.upper() == "Y":
@@ -135,21 +114,20 @@ def esearch():
                 print("Please input Y ('Yes') or N ('No').")
                 break
 
+#example_efetch(): unused function used to fetch a fasta file based on the previous esearch results
 def example_efetch():
     subprocess.call(["touch", "example_efetch.fasta"])
     with open("example_efetch.fasta", "w") as outfile:
         subprocess.call(["efetch", "-db", "protein", "-id", example_webenv_var, "-format", "fasta"], stdout=outfile) 
-        
+
+#example efetch(): unused function that was to be used to fetch a fasta file based on previous esearch results
 def efetch():
     subprocess.call(["touch", "efetch.fasta"])
     with open("efetch.fasta", "w") as outfile:
         cmd = "esearch -db protein -query " + search_query + " |  efetch -db protein -WebEnv " + webenv_var[0] + " -format fasta"
         subprocess.Popen(cmd, shell=True, stdout=outfile)
         #subprocess.call(["esearch", "-db", "protein", "-query", "'", search_query, "'", "|", "efetch", "-format", "fasta"], stdout=outfile)
-         
-#esearch -db protein -query "lycopene cyclase" |  efetch -format fasta
-        
-#get line
+
 def example_extract_webenv():
     string_var = "WebEnv"
     matchedLine = ""
@@ -164,7 +142,8 @@ def example_extract_webenv():
     with open("example_esearch_output.txt", "w") as file:
         file.write(splicedLine)
         return splicedLine
-    
+
+#extract_webenv(): unused function that was to be used to extract the WebEnv section of an esearch query to feed into NCBI's history servers to retrieve fasta files.
 def extract_webenv():
     string_var = "WebEnv"
     string_var_2 = "QueryKey"
@@ -192,7 +171,7 @@ syntaxes to have python execute scripts this way, but unfortunately the input/ou
 bash scripting to a minimum.
 '''
 
-#function to run esearch and pipe result into efetch to fetch relevant FASTA files into a file called query_fasta.fasta
+#execute_esearch(): function to run esearch and pipe result into efetch to fetch relevant FASTA files into a file called query_fasta.fasta
 def execute_esearch():
     x = input("You are about to download FASTA files of your protein of interest. This may take a while. Proceed? Y/N")
     while True:
@@ -207,7 +186,7 @@ def execute_esearch():
             print("Please input Y ('Yes') or N ('No').")
             break
         
-#function to run makeblastdb of the fasta files for intersequence similarity alignment into a DB called seq_db
+#execute_makeblastdb(): function to run makeblastdb of the fasta files for sequence similarity alignment into a DB called seq_db
 def execute_makeblastdb():
     x = input("You are about to create a database of your sequences of interest against which to BLAST. This may take a while. Proceed? Y/N")
     while True:
@@ -222,7 +201,7 @@ def execute_makeblastdb():
             print("Please input Y ('Yes') or N ('No').")
             break
 
-#this function runs blastp against the previously created seq_db, using a modified version of outfmt -7 that includes the fasta headers.
+#execute_blastp(): this function runs blastp against the previously created seq_db, using a modified version of outfmt -7 that includes the fasta headers
 def execute_blastp():
     x = input("You are about to BLAST your protein sequences against your local database in a multiple sequence alignment. Proceed? Y/N")
     while True:
@@ -237,9 +216,9 @@ def execute_blastp():
             print("Please input Y ('Yes') or N ('No').")
             break
 
-#Once blastp has run, we extract the fasta headers only column from the 250 most similar sequences for use with pullseq.    
+#execute_250_seq(): Once blastp has run, we extract the fasta headers only column from the 250 most similar sequences from the blastp output file   
 def execute_250_seq():
-    x = input("The max. 250 most similar sequences will be extracted and used in the next procedure. Proceed? Y/N")
+    x = input("The max. 250 most similar sequences will be extracted. Proceed? Y/N")
     while True:
         if x.upper() == "Y":
             print("Thank you. Running script.")
@@ -251,9 +230,10 @@ def execute_250_seq():
         else:
             print("Please input Y ('Yes') or N ('No').")
             break
-        
+
+#execute_pullseq(): function that uses pullseq program with the headers of the 250 most similar sequence headers to create a new fasta file.
 def execute_pullseq():
-    x = input("The max. 250 most similar sequences will be extracted and used in the next procedure. Proceed? Y/N")
+    x = input("The max. 250 most similar sequences will be extracted from your fasta sequences for further analysis. Proceed? Y/N")
     while True:
         if x.upper() == "Y":
             print("Thank you. Running pullseq.")
@@ -266,9 +246,9 @@ def execute_pullseq():
             print("Please input Y ('Yes') or N ('No').")
             break
         
-#running clustalo with input file 250_final_fastas.fasta (containing the 250 most similar sequences in fasta format)
+#execute_clustalo(): function that runs clustalo with input file containing the 250 most similar sequences in fasta format
 def execute_clustalo():
-    x = input("You are about to use clustalo to create a sequence alignment using the max. 250 most similar sequences. Proceed? Y/N")
+    x = input("You are about to use clustalo to create a sequence clustering using your max. 250 most similar sequences. Proceed? Y/N")
     while True:
         if x.upper() == "Y":
             print("Thank you. Running script.")
@@ -280,7 +260,8 @@ def execute_clustalo():
         else:
             print("Please input Y ('Yes') or N ('No').")
             break
-     
+        
+#execute_plotcon(): function that runs the EMBOSS plotcon program to plot conservation of sequence alignment of 250 most similar sequences.
 def execute_plotcon():
     x = input("You are about to use PLOTCON to create a sequence conservation plot of the max. 250 sequences. Proceed? Y/N")
     while True:
@@ -351,8 +332,9 @@ def iterate_blastp():
 #print(example_webenv_var)
 #print(webenv_var)
 
+#FUNCTION CALLS
+            
 #Retrieve user input
-
 pfn_var = test_pfn()
 tg_var = test_tg()
 final_search = search_database(pfn_var, tg_var)
