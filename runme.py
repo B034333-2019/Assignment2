@@ -222,6 +222,7 @@ def execute_makeblastdb():
             print("Please input Y ('Yes') or N ('No').")
             break
 
+#this function runs blastp against the previously created seq_db, using a modified version of outfmt -7 that includes the fasta headers.
 def execute_blastp():
     x = input("You are about to BLAST your protein sequences against your local database in a multiple sequence alignment. Proceed? Y/N")
     while True:
@@ -235,25 +236,10 @@ def execute_blastp():
         else:
             print("Please input Y ('Yes') or N ('No').")
             break
-'''
-def execute_clustalo():
-    x = input("You are about to use clustalo to check for similar alignments. Proceed? Y/N")
-    while True:
-        if x.upper() == "Y":
-            print("Thank you. Running script.")
-            subprocess.call("./clustalo.sh", shell=True)
-            break
-        if x.upper() == "N":
-             print("Please run script again to do a new search.")
-             break
-        else:
-            print("Please input Y ('Yes') or N ('No').")
-            break
-'''     
 
-#Once blastp has run, we extract the subject accession number column from the 250 most similar        
+#Once blastp has run, we extract the fasta headers only column from the 250 most similar sequences for use with pullseq.    
 def execute_250_seq():
-    x = input("The 250 most similar sequences will be extracted and used in the next  Proceed? Y/N")
+    x = input("The max. 250 most similar sequences will be extracted and used in the next procedure. Proceed? Y/N")
     while True:
         if x.upper() == "Y":
             print("Thank you. Running script.")
@@ -265,6 +251,50 @@ def execute_250_seq():
         else:
             print("Please input Y ('Yes') or N ('No').")
             break
+        
+def execute_pullseq():
+    x = input("The max. 250 most similar sequences will be extracted and used in the next procedure. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running pullseq.")
+            subprocess.call("./pullseq.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+        
+#running clustalo with input file 250_final_fastas.fasta (containing the 250 most similar sequences in fasta format)
+def execute_clustalo():
+    x = input("You are about to use clustalo to create a sequence alignment using the max. 250 most similar sequences. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./clustalo.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+     
+def execute_plotcon():
+    x = input("You are about to use PLOTCON to create a sequence conservation plot of the max. 250 sequences. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./plotcon.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
+        
 
 #%%
 
@@ -293,23 +323,8 @@ def loop_250():
     f.write(list)
     f.close()
     
-loop_250()
-
 #%%
-def execute_plotcon():
-    x = input("You are about to use PLOTCON to create a sequence conservation plot. Proceed? Y/N")
-    while True:
-        if x.upper() == "Y":
-            print("Thank you. Running script.")
-            subprocess.call("./plotcon.sh", shell=True)
-            break
-        if x.upper() == "N":
-             print("Please run script again to do a new search.")
-             break
-        else:
-            print("Please input Y ('Yes') or N ('No').")
-            break
-        
+
 
 
 
@@ -351,6 +366,10 @@ esearch()
 execute_esearch()
 execute_makeblastdb()
 execute_blastp()
+execute_250_seq()
+execute_pullseq()
+execute_clustalo()
+execute_plotcon()
 
 #execute_plotcon()
 

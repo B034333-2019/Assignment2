@@ -2,12 +2,9 @@
 
 VAR=`cat variables.txt`
 VAR2=`cat esearch_output.txt`
-
+ 
 echo $VAR
-
+#Runs an esearch with the user's inputted variables and feeds the result into an efetch to retrieve fasta files
+echo -e "Running esearch and efetch..."
 esearch -db protein -query "$VAR" | efetch -format fasta > query_fasta.fasta
-
-#makeblastdb -in query_fasta.fasta -dbtype prot -out seq_db
-
-blastp -query query_fasta.fasta -db nr -remote -out blastp_output
 
