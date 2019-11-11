@@ -23,19 +23,41 @@ seq_count = ""
 search_query = ""
 #FUNCTIONS
 
-
-
+#testing function of pfn var to include more checks
 
 #FUNCTION LIST
 
-#test_pfn(): function that checks the user input for the protein family name is a string, and not a number or logic operator
+#TEST PFN
+def test_pfn():
+    pfn_var = ""
+    while True:
+        pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
+        pfn_var = pfn_var.lower()
+        if pfn_var == "" or pfn_var.isdigit() == True:
+            print("You must search for something - you cannot leave it empty, or input numbers!")
+        else:
+            y_n_query = input("Is '" + str(pfn_var) + "' the protein family you wish to investigate? Y/N")
+            if y_n_query.upper() == "Y":
+                print("Thank you. You have inputted: '" + pfn_var + "'.")
+                return pfn_var
+            elif y_n_query.upper() == "N":
+                pfn_var = input("Please enter the protein family name you are interested in: ")
+            else:
+                print("Please input Y ('Yes') or N ('No').")
+            
+'''
+#legacy test_pfn(): function that checks the user input for the protein family name is a string, and not a number or logic operator
 def test_pfn():
         pfn_var = ""
+        pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
+        pfn_var = pfn_var.lower()
         while True:
-            pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
-            pfn_var = pfn_var.lower()
             if pfn_var.isdigit():
                 print("Your input is not in the correct format. Please input text. Do not input numbers.")
+                break
+            if pfn_var == "":
+                print("You must search for something - you cannot leave it empty!")
+                break
             else:
                 y_n_query = input("Is '" + str(pfn_var) + "' the protein family you wish to investigate? Y/N")
                 if y_n_query.upper() == "Y":
@@ -47,8 +69,27 @@ def test_pfn():
                     continue
                 else:
                     print("Please input Y ('Yes') or N ('No').")
-                
+'''                
 
+def test_tg():
+    tg_var = ""
+    while True:
+        tg_var = input("Please enter the taxonomy name you are interested in. Capitalisation is not important, but spelling is: ")
+        tg_var = tg_var.lower()
+        if tg_var == "" or tg_var.isdigit() == True:
+            print("You must search for something - you cannot leave it empty, or input numbers!")
+        else:
+            y_n_query = input("Is '" + str(tg_var) + "' the taxonomy you wish to investigate? Y/N")
+            if y_n_query.upper() == "Y":
+                print("Thank you. You have inputted: '" + tg_var + "'.")
+                return tg_var
+            elif y_n_query.upper() == "N":
+                tg_var = input("Please enter the taxonomy name you are interested in: ")
+            else:
+                print("Please input Y ('Yes') or N ('No').")
+
+#legacy test_tg
+'''
 #test_tg(): function that checks the user input for the taxonomy is a string, and not a number or logic operator
 def test_tg():
     tg_var = ""
@@ -68,7 +109,7 @@ def test_tg():
                 continue
             else:
                 print("Please input Y ('Yes') or N ('No').")
-               
+'''               
 
 #search_database(args): Confirms that both protein protein family and taxonomic group are correctly input before proceeding.
 def search_database(pfn_var, tg_var):
@@ -312,7 +353,7 @@ def loop_250():
 #Function to iterate through a blastp search, in order to pick out the 250 most high-scoring sequences
  
     #%%
-practice_list  = ["red", "green", "orange", "yellow"]    
+ 
     
 def iterate_blastp():
     list_250 = []
