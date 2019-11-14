@@ -2,12 +2,10 @@
 
 #IMPORT MODULES
 
-import os
+
 import subprocess
 from subprocess import call
-import functools 
-import operator
-import re
+from collections import defaultdict
 
 #GLOBAL VARIABLES
 
@@ -41,7 +39,7 @@ def test_pfn():
                 print("Thank you. You have inputted: '" + pfn_var + "'.")
                 return pfn_var
             elif y_n_query.upper() == "N":
-                pfn_var = input("Please enter the protein family name you are interested in: ")
+                print("Please enter the protein family name you are interested in: ")
             else:
                 print("Please input Y ('Yes') or N ('No').")
             
@@ -84,7 +82,7 @@ def test_tg():
                 print("Thank you. You have inputted: '" + tg_var + "'.")
                 return tg_var
             elif y_n_query.upper() == "N":
-                tg_var = input("Please enter the taxonomy name you are interested in: ")
+                print("Please enter the taxonomy name you are interested in: ")
             else:
                 print("Please input Y ('Yes') or N ('No').")
 
@@ -316,6 +314,70 @@ def execute_plotcon():
         else:
             print("Please input Y ('Yes') or N ('No').")
             break
+
+'''
+
+#create a dictionary of 250 most similar fasta sequences - LEGACY
+def mofit_database_dict():
+    fasta = defaultdict(list)
+    with open("twofifty_final_fastas") as file_one:
+        for line in file_one:
+            if line.startswith(">"):
+                fasta[line.strip("\n")].append(next(file_one).rstrip())
+    return fasta
+'''
+
+#create dictionary of fasta FILE to send into patmatmotifs
+def mofit_database_dict():
+    fasta = defaultdict(str)
+    with open("twofifty_final_fastas") as file1:
+        for line in file1:
+            if line[0] == '>':
+                key = line.strip('\n')
+            else:
+                fasta[key] += line.strip('\n')
+    return fasta
+
+'''
+def patmatmotifs_loop():
+    subprocess.call(["touch", "prositereport"])
+    for value in fasta_dict.values():
+            sequence = str(value)
+            cmd = "patmatmotifs -sequence " + sequence + " -outfile prositereport -full True >> prositereport"
+            subprocess.call(cmd, shell=True)
+'''             
+            
+#testing by temporarily writing to a file
+def patmatmotifs_loop():
+    subprocess.call(["touch", "prositereport"])
+    subprocess.call(["touch", "PROSITEdb"])
+    for key, value in fasta_dict.items():
+        subprocess.call(["touch", "temp.fasta"])
+        with open("temp.fasta", "w") as f:
+            header = str(key) + "\n"
+            sequence = str(value) 
+            sequence = sequence + "\n"
+            f.write(header)
+            f.write(sequence)
+            f.close()
+            cmd = "patmatmotifs -sequence temp.fasta -sprotein1 True -outfile prositereport" #-full True"
+            subprocess.call(cmd, shell=True)
+            cmd = "cat prositereport >> PROSITEdb"
+            subprocess.call(cmd, shell=True)
+            
+def execute_patmatmotifs():
+    x = input("You are about to compare your max. 250 most similar sequences against PROSITE protein motifs. Proceed? Y/N")
+    while True:
+        if x.upper() == "Y":
+            print("Thank you. Running script.")
+            subprocess.call("./patmatmotifs.sh", shell=True)
+            break
+        if x.upper() == "N":
+             print("Please run script again to do a new search.")
+             break
+        else:
+            print("Please input Y ('Yes') or N ('No').")
+            break
         
 
 #%%
@@ -374,7 +436,7 @@ def iterate_blastp():
 #print(webenv_var)
 
 #FUNCTION CALLS
-            
+'''            
 #Retrieve user input
 pfn_var = test_pfn()
 tg_var = test_tg()
@@ -382,9 +444,10 @@ final_search = search_database(pfn_var, tg_var)
 
 search_query = pfn_var + " AND " + tg_var
 
+write_variables()
+
 #Further analysis
 
-write_variables()
 esearch()
 execute_esearch()
 execute_makeblastdb()
@@ -393,16 +456,14 @@ execute_250_seq()
 execute_pullseq()
 execute_clustalo()
 execute_plotcon()
+execute_patmatmotifs()
+'''
 
-#execute_plotcon()
+#motif_database_dict()
 
-#iterate_blastp()
+fasta_dict = mofit_database_dict()
 
-#example_efetch()
-#efetch()
-
-
-
+patmatmotifs_loop()
 #%% - end 
 
 #Print to console what search choices are about to be made. Maybe include italics and capitals?
