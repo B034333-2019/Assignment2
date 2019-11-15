@@ -2,7 +2,7 @@
 
 #IMPORT MODULES
 
-
+import sys
 import subprocess
 from subprocess import call
 from collections import defaultdict
@@ -29,10 +29,13 @@ search_query = ""
 def test_pfn():
     pfn_var = ""
     while True:
-        pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
+        pfn_var = input("Please enter the protein family name you are interested in. Type 'exit' to leave the program. Capitalisation is not important, but spelling is: ")
         pfn_var = pfn_var.lower()
         if pfn_var == "" or pfn_var.isdigit() == True:
             print("You must search for something - you cannot leave it empty, or input numbers!")
+        elif pfn_var.lower() == "exit":
+            print("Thank you for running runme.py! Have a bioinformatically awesome day!")
+            break
         else:
             y_n_query = input("Is '" + str(pfn_var) + "' the protein family you wish to investigate? Y/N")
             if y_n_query.upper() == "Y":
@@ -40,6 +43,10 @@ def test_pfn():
                 return pfn_var
             elif y_n_query.upper() == "N":
                 print("Please enter the protein family name you are interested in: ")
+            elif y_n_query.lower() == "exit":
+                print("Thank you for running runme.py! Have a bioinformatically awesome day!")
+                sys.exit()
+                break
             else:
                 print("Please input Y ('Yes') or N ('No').")
             
@@ -72,10 +79,13 @@ def test_pfn():
 def test_tg():
     tg_var = ""
     while True:
-        tg_var = input("Please enter the taxonomy name you are interested in. Capitalisation is not important, but spelling is: ")
+        tg_var = input("Please enter the taxonomy name you are interested in. Type 'exit' to leave the program. Capitalisation is not important, but spelling is: ")
         tg_var = tg_var.lower()
         if tg_var == "" or tg_var.isdigit() == True:
             print("You must search for something - you cannot leave it empty, or input numbers!")
+        elif tg_var.lower() == "exit":
+            print("Thank you for running runme.py! Have a bioinformatically awesome day!")
+            break
         else:
             y_n_query = input("Is '" + str(tg_var) + "' the taxonomy you wish to investigate? Y/N")
             if y_n_query.upper() == "Y":
@@ -83,6 +93,9 @@ def test_tg():
                 return tg_var
             elif y_n_query.upper() == "N":
                 print("Please enter the taxonomy name you are interested in: ")
+            elif y_n_query.upper() == "exit":
+                print("Thank you for running runme.py! Have a bioinformatically awesome day!")
+                break
             else:
                 print("Please input Y ('Yes') or N ('No').")
 
@@ -112,8 +125,8 @@ def test_tg():
 #search_database(args): Confirms that both protein protein family and taxonomic group are correctly input before proceeding.
 def search_database(pfn_var, tg_var):
     touple = (pfn_var, tg_var)
-    correct_search = input("Searching for " + pfn_var.capitalize() + " in the taxonomy " + tg_var.capitalize() + " in the NCBI database. Is this correct? Y/N")
     while True:
+        correct_search = input("Searching for " + pfn_var.capitalize() + " in the taxonomy " + tg_var.capitalize() + " in the NCBI Protein database. Is this correct? Y/N")
         if correct_search.upper() == "Y":
             return touple
         if correct_search.upper() == "N":
@@ -349,35 +362,61 @@ def patmatmotifs_loop():
             
 #testing by temporarily writing to a file
 def patmatmotifs_loop():
-    subprocess.call(["touch", "prositereport"])
-    subprocess.call(["touch", "PROSITEdb"])
-    for key, value in fasta_dict.items():
-        subprocess.call(["touch", "temp.fasta"])
-        with open("temp.fasta", "w") as f:
-            header = str(key) + "\n"
-            sequence = str(value) 
-            sequence = sequence + "\n"
-            f.write(header)
-            f.write(sequence)
-            f.close()
-            cmd = "patmatmotifs -sequence temp.fasta -sprotein1 True -outfile prositereport" #-full True"
-            subprocess.call(cmd, shell=True)
-            cmd = "cat prositereport >> PROSITEdb"
-            subprocess.call(cmd, shell=True)
-            
-def execute_patmatmotifs():
     x = input("You are about to compare your max. 250 most similar sequences against PROSITE protein motifs. Proceed? Y/N")
     while True:
         if x.upper() == "Y":
-            print("Thank you. Running script.")
-            subprocess.call("./patmatmotifs.sh", shell=True)
-            break
+            subprocess.call(["touch", "prositereport"])
+            subprocess.call(["touch", "PROSITEdb"])
+            for key, value in fasta_dict.items():
+                subprocess.call(["touch", "temp.fasta"])
+                with open("temp.fasta", "w") as f:
+                    header = str(key) + "\n"
+                    sequence = str(value) 
+                    sequence = sequence + "\n"
+                    f.write(header)
+                    f.write(sequence)
+                    f.close()
+                    cmd = "patmatmotifs -sequence temp.fasta -sprotein1 True -verbose False -outfile prositereport" #-full True"
+                    subprocess.call(cmd, shell=True)
+                    cmd = "cat prositereport >> PROSITEdb"
+                    subprocess.call(cmd, shell=True)
+                    break
+            subprocess.call(["echo", "-e", "Your final motif report is contained in the file PROSITEdb."])
         if x.upper() == "N":
              print("Please run script again to do a new search.")
              break
         else:
             print("Please input Y ('Yes') or N ('No').")
+            break    
+        
+def wildcard():
+    x = ""
+    while True:
+        x = input("You can either run your 250 most similar sequences through an infoalign analysis to show information about all 250 sequences [Enter: 1],              and/or run a pepstats analysis receive a report for protein statistics [Enter: 2]. To run both, enter 3. To exit the program, type 'exit'.")
+        if x == "1":
+            subprocess.call(["echo", "-e", "running infoalign..."])
+            subprocess.call("./infoalign.sh", shell=True)
+            subprocess.call(["echo", "-e", "Your info analysis is available in the file infoalign.report."])
             break
+        if x == "2":
+            subprocess.call(["echo", "-e", "running pepstats..."])
+            subprocess.call("./pepstats.sh", shell=True)
+            subprocess.call(["echo", "-e", "Your protein statistics are available in the file stats.pepstats."])
+            break
+        if x == "3":
+             subprocess.call(["echo", "-e", "running infoalign and protein statistics..."])
+             subprocess.call("./infoalign.sh", shell=True)
+             subprocess.call("./pepstats.sh", shell=True)
+             subprocess.call(["echo", "-e", "Your info analysis is available in the file infoalign.report."])
+             subprocess.call(["echo", "-e", "Your protein statistics are available in the file stats.pepstats."])
+             break
+        if x.lower() == "exit":
+            print("Thank you for running runme.py! Have a bioinformatically awesome day!")
+            break
+        else:
+            print("Please input 1 for infoalign, 2 for protein statistics, 3 for both, or type exit to quit program.")
+            continue
+            
         
 
 #%%
@@ -415,14 +454,14 @@ def loop_250():
 #Function to iterate through a blastp search, in order to pick out the 250 most high-scoring sequences
  
     #%%
- 
-    
+'''
+#function unused
 def iterate_blastp():
     list_250 = []
     with open('blastoutput1.out', 'r') as file:
         for i in range(0,250,1) in file:
             list_250 = list_250.append(i)
-            
+'''        
             
 
 #%%
@@ -436,7 +475,7 @@ def iterate_blastp():
 #print(webenv_var)
 
 #FUNCTION CALLS
-'''            
+            
 #Retrieve user input
 pfn_var = test_pfn()
 tg_var = test_tg()
@@ -456,14 +495,12 @@ execute_250_seq()
 execute_pullseq()
 execute_clustalo()
 execute_plotcon()
-execute_patmatmotifs()
-'''
-
-#motif_database_dict()
 
 fasta_dict = mofit_database_dict()
 
 patmatmotifs_loop()
+
+wildcard()
 #%% - end 
 
 #Print to console what search choices are about to be made. Maybe include italics and capitals?
