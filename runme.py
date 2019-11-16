@@ -1,10 +1,20 @@
-#%%
+'''
+TITLE: "Runme.py - a rather silly BPSM Assignment 2 script"
+AUTHOR: B034333
+GITHUB: https://github.com/B034333-2019/Assignment2
+README: https://github.com/B034333-2019/Assignment2/blob/master/B034333%20Assignment%202%20PDF%20file.odt
+DESCRIPTION: A progam designed to search for and download fasta format files from the NCBI's protein database depending on the 
+user's whims and wishes. 
+These files are then used for multiple sequence alignment, of which the top 250 most similar sequences are chosen.
+A conservation sequence plot is created, and the sequences compared to the PROSITE database of protein motifs. Finally, the 
+user has the option of getting sequence and protein reports.
+'''
 
 #IMPORT MODULES
 
 import sys
+from sys import exit
 import subprocess
-from subprocess import call
 from collections import defaultdict
 
 #GLOBAL VARIABLES
@@ -15,120 +25,70 @@ pfn_var = ""
 #Variable for the user input taxonomic group
 tg_var = ""
 
-#Number of sequences that are found during esearch
-seq_count = ""
-
+#contatenation of pfn_var AND tg_var
 search_query = ""
+
+#Dictionary for reading fasta files into python script
+fasta_dict = {}
+
+
 #FUNCTIONS
 
-#testing function of pfn var to include more checks
-
-#FUNCTION LIST
-
-#TEST PFN
+#Function designed to obtain user input of the protein family name to be queried.
 def test_pfn():
     pfn_var = ""
     while True:
         pfn_var = input("Please enter the protein family name you are interested in. Type 'exit' to leave the program. Capitalisation is not important, but spelling is: ")
         pfn_var = pfn_var.lower()
-        if pfn_var == "" or pfn_var.isdigit() == True:
+        if pfn_var == "" or pfn_var.isdigit() == True or len(pfn_var.strip()) == 0:
             print("You must search for something - you cannot leave it empty, or input numbers!")
         elif pfn_var.lower() == "exit":
             print("Thank you for running runme.py! Have a bioinformatically awesome day!")
-            break
+            sys.exit()
         else:
             y_n_query = input("Is '" + str(pfn_var) + "' the protein family you wish to investigate? Y/N")
             if y_n_query.upper() == "Y":
                 print("Thank you. You have inputted: '" + pfn_var + "'.")
                 return pfn_var
             elif y_n_query.upper() == "N":
-                print("Please enter the protein family name you are interested in: ")
+                print("Please enter the protein family name you are interested in.")
             elif y_n_query.lower() == "exit":
                 print("Thank you for running runme.py! Have a bioinformatically awesome day!")
                 sys.exit()
-                break
             else:
                 print("Please input Y ('Yes') or N ('No').")
             
-'''
-#legacy test_pfn(): function that checks the user input for the protein family name is a string, and not a number or logic operator
-def test_pfn():
-        pfn_var = ""
-        pfn_var = input("Please enter the protein family name you are interested in. Capitalisation is not important, but spelling is: ")
-        pfn_var = pfn_var.lower()
-        while True:
-            if pfn_var.isdigit():
-                print("Your input is not in the correct format. Please input text. Do not input numbers.")
-                break
-            if pfn_var == "":
-                print("You must search for something - you cannot leave it empty!")
-                break
-            else:
-                y_n_query = input("Is '" + str(pfn_var) + "' the protein family you wish to investigate? Y/N")
-                if y_n_query.upper() == "Y":
-                    print("Thank you. You have inputted: '" + pfn_var + "'.")
-                    return pfn_var
-                    break
-                elif y_n_query.upper() == "N":
-                    pfn_var = input("Please enter the protein family name you are interested in: ")
-                    continue
-                else:
-                    print("Please input Y ('Yes') or N ('No').")
-'''                
-
+#Function designed to obtain user input of the taxonomy to be queried.
 def test_tg():
     tg_var = ""
     while True:
         tg_var = input("Please enter the taxonomy name you are interested in. Type 'exit' to leave the program. Capitalisation is not important, but spelling is: ")
         tg_var = tg_var.lower()
-        if tg_var == "" or tg_var.isdigit() == True:
+        if tg_var == "" or tg_var.isdigit() == True or len(tg_var.strip()) == 0:
             print("You must search for something - you cannot leave it empty, or input numbers!")
         elif tg_var.lower() == "exit":
             print("Thank you for running runme.py! Have a bioinformatically awesome day!")
-            break
+            sys.exit()
         else:
             y_n_query = input("Is '" + str(tg_var) + "' the taxonomy you wish to investigate? Y/N")
             if y_n_query.upper() == "Y":
                 print("Thank you. You have inputted: '" + tg_var + "'.")
                 return tg_var
             elif y_n_query.upper() == "N":
-                print("Please enter the taxonomy name you are interested in: ")
+                print("Please enter the taxonomy name you are interested in.")
             elif y_n_query.upper() == "exit":
                 print("Thank you for running runme.py! Have a bioinformatically awesome day!")
-                break
+                sys.exit()
             else:
                 print("Please input Y ('Yes') or N ('No').")
-
-#legacy test_tg
-'''
-#test_tg(): function that checks the user input for the taxonomy is a string, and not a number or logic operator
-def test_tg():
-    tg_var = ""
-    while True:
-        tg_var = input("Please enter the taxonomic group you are interested in. Again, capitalisation is not important, but spelling is: ")
-        tg_var = tg_var.lower()
-        if tg_var.isdigit():
-            print("Your input is not in the correct format. Please input text. Do not input numbers.")
-        else:
-            y_n_query = input("Is '" + str(tg_var) + "' the taxonomic group you wish to investigate? Y/N")
-            if y_n_query.upper() == "Y":
-                print("Thank you. You have inputted: '" + tg_var + "'.")
-                return tg_var
-                break
-            elif y_n_query.upper() == "N":
-                tg_var = input("Please enter the taxonomic group you are interested in: ")
-                continue
-            else:
-                print("Please input Y ('Yes') or N ('No').")
-'''               
 
 #search_database(args): Confirms that both protein protein family and taxonomic group are correctly input before proceeding.
 def search_database(pfn_var, tg_var):
-    touple = (pfn_var, tg_var)
     while True:
         correct_search = input("Searching for " + pfn_var.capitalize() + " in the taxonomy " + tg_var.capitalize() + " in the NCBI Protein database. Is this correct? Y/N")
         if correct_search.upper() == "Y":
-            return touple
+            print("Thank you.")
+            break
         if correct_search.upper() == "N":
             print("Please run script again to input your protein family name and taxonomic group of interest.")
             break
@@ -148,24 +108,30 @@ def example_esearch():
     with open("example_esearch.txt", "w") as outfile:
         example_query = "glucose-6-phosphatase AND aves"
         subprocess.call(["esearch", "-db", "protein", "-query", example_query], stdout=outfile) 
-        
+       
+
 #esearch(): function used to query the NCBI protein database and return the number of sequences found (WORK IN PROGRESS)
 def esearch():
-    subprocess.call(["touch", "esearch.txt"])
-    with open("esearch.txt", "w") as outfile:
-        subprocess.call(["esearch", "-db", "protein", "-query", search_query], stdout=outfile) 
-        correct_search = input("Your search has returned X number of sequences. Continue to download sequences? Y/N")
-        while True:
-            if correct_search.upper() == "Y":
-                print("Thank you. Downloading sequences. Please be patient.")
-                return seq_count
-            if correct_search.upper() == "N":
-                print("Please run script again to do a new search.")
-                break
-            else:
-                print("Please input Y ('Yes') or N ('No').")
-                break
-
+    subprocess.call("./esearchxtract.sh", shell=True)
+    with open("count", "r") as outfile:
+        for line in outfile:
+            count = int(line)
+        if count <= 10000:
+            while True:
+                correct_search = input("Your search has returned " + str(count) + " number of sequences. Continue to download sequences? Y/N")
+                if correct_search.upper() == "Y":
+                    print("Thank you. Running efetch to download sequences in fasta format. Please be patient.")
+                    return count
+                if correct_search.upper() == "N":
+                    print("Please run script again to do a new search.")
+                    break
+                else:
+                    print("Please input Y ('Yes') or N ('No').")
+                    break
+        else:
+            print("I'm sorry, your search has resulted in more than 10,000 results. Please narrow your search scope and run the program again.")
+            exit()
+            
 #example_efetch(): unused function used to fetch a fasta file based on the previous esearch results
 def example_efetch():
     subprocess.call(["touch", "example_efetch.fasta"])
@@ -179,21 +145,6 @@ def efetch():
         cmd = "esearch -db protein -query " + search_query + " |  efetch -db protein -WebEnv " + webenv_var[0] + " -format fasta"
         subprocess.Popen(cmd, shell=True, stdout=outfile)
         #subprocess.call(["esearch", "-db", "protein", "-query", "'", search_query, "'", "|", "efetch", "-format", "fasta"], stdout=outfile)
-
-def example_extract_webenv():
-    string_var = "WebEnv"
-    matchedLine = ""
-    splicedLine = ""
-    subprocess.call(["touch", "example_esearch.txt"])
-    with open('example_esearch.txt', 'r') as file:
-        for line in file:
-            if string_var in line:
-                matchedLine = line
-                splicedLine = matchedLine[10:][:-10]
-                break
-    with open("example_esearch_output.txt", "w") as file:
-        file.write(splicedLine)
-        return splicedLine
 
 #extract_webenv(): unused function that was to be used to extract the WebEnv section of an esearch query to feed into NCBI's history servers to retrieve fasta files.
 def extract_webenv():
@@ -392,7 +343,7 @@ def patmatmotifs_loop():
 def wildcard():
     x = ""
     while True:
-        x = input("You can either run your 250 most similar sequences through an infoalign analysis to show information about all 250 sequences [Enter: 1],              and/or run a pepstats analysis receive a report for protein statistics [Enter: 2]. To run both, enter 3. To exit the program, type 'exit'.")
+        x = input("You can either run your 250 most similar sequences through an infoalign analysis to show information about all 250 sequences [Enter: 1], and/or run a pepstats analysis receive a report for protein statistics [Enter: 2]. To run both, enter 3. To exit the program, type 'exit'.")
         if x == "1":
             subprocess.call(["echo", "-e", "running infoalign..."])
             subprocess.call("./infoalign.sh", shell=True)
@@ -412,17 +363,14 @@ def wildcard():
              break
         if x.lower() == "exit":
             print("Thank you for running runme.py! Have a bioinformatically awesome day!")
-            break
+            sys.exit()
         else:
             print("Please input 1 for infoalign, 2 for protein statistics, 3 for both, or type exit to quit program.")
             continue
             
         
 
-#%%
 
-import subprocess
-from subprocess import call
 
 '''
 #retrieve top 250 similar sequences and put them in a file as a list
@@ -446,14 +394,14 @@ def loop_250():
     f.write(list)
     f.close()
     
-#%%
+
 
 
 
 
 #Function to iterate through a blastp search, in order to pick out the 250 most high-scoring sequences
  
-    #%%
+    
 '''
 #function unused
 def iterate_blastp():
@@ -464,7 +412,7 @@ def iterate_blastp():
 '''        
             
 
-#%%
+
 
 
    
@@ -488,33 +436,19 @@ write_variables()
 #Further analysis
 
 esearch()
-execute_esearch()
-execute_makeblastdb()
-execute_blastp()
-execute_250_seq()
-execute_pullseq()
-execute_clustalo()
-execute_plotcon()
+#execute_esearch()
+#execute_makeblastdb()
+#execute_blastp()
+#execute_250_seq()
+#execute_pullseq()
+#execute_clustalo()
+#execute_plotcon()
 
-fasta_dict = mofit_database_dict()
+#fasta_dict = mofit_database_dict()
 
-patmatmotifs_loop()
+#patmatmotifs_loop()
 
-wildcard()
-#%% - end 
-
-#Print to console what search choices are about to be made. Maybe include italics and capitals?
+#wildcard()
 
 
-
-#print("Searching for " + pfn_var.capitalize() + " in the taxonomy " + tg_var.capitalize() + " in the NCBI database.")
-#touple = (pfn_var, tg_var)
-
-#print(type(touple))
-
-#print(touple)
-
-#print(touple[0], touple[1])
-
-#%%
 
